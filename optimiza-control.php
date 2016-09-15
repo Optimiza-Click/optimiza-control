@@ -1,179 +1,77 @@
 <?php
 /*
-Plugin Name: WP Memory Login
+Plugin Name: WP Optimiza Control
 Plugin URI: http://www.optimizaclick.com
-Description: Plugin para el acceso de usuarios a traves del panel de usuario
+Description: Plugin para la instalación automatizada de plugins
 Author: Departamento de Desarrollo
-Version: 0.7
+Version: 0.2
 */
 
 require_once( dirname(__FILE__) . '/update.php' );
 
-if ( ! class_exists( 'WP_Memory_Login' ) ) {
-	class WP_Memory_Login {
+if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
+	class WP_Optimiza_Control {
 		
-		private $group_users = array("optimizaclick.manager","optimizaclick.user");	
-			
+		public $temp_name = "temp_optimiza_control_plugins.zip";
+		
 		function __construct() {
-			add_action( 'plugins_loaded', array( $this, 'includes' ));
-			add_action( 'init', array( $this, 'redirect_memory' ) );
-			add_action( 'init', array( $this, 'memory_save' ) );
-			add_action( 'init', array( $this, 'memory_login' ) );
-			add_action( 'init', array( $this, 'memory_options' ) );
-			add_action( 'init', array( $this, 'memory_register_options' ) );
+			
+			//ACTION TO DO WHEN PLUGINS ACTIVATE
+			register_activation_hook(__FILE__, array( $this,'install_plugins'));
+
 		}
-
-
-		// add library jwt to decode
-
-		public function includes() {
-			require_once( dirname(__FILE__) . '/lib/jwt.php' );
-			require_once( dirname(__FILE__) . '/lib/BeforeValidException.php' );
-			require_once( dirname(__FILE__) . '/lib/ExpiredException.php' );
-			require_once( dirname(__FILE__) . '/lib/SignatureInvalidException.php' );
-		}
-
-		// redirect to memory for enter by url
 		
-		public function redirect_memory() {
-			$page_viewed = basename($_SERVER['REQUEST_URI']);
-			$login_page  = 'http://memory.tsuru.qdqmedia.com//login/v1/wordpress/?referer=' . site_url().'/';
-				if( $page_viewed == "optimiza-login" && $_SERVER['REQUEST_METHOD'] == 'GET') {
-					wp_redirect($login_page);
-				exit();
-			}
-		}
-
-
-		// save json token in db
-
-		public function memory_save() {
-			global $wpdb, $post;
-			$page_viewed = basename($_SERVER['REQUEST_URI']);
-			$url =  "http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
-			if( isset($_GET['memory-uuid']) && $_SERVER['REQUEST_METHOD'] == 'POST') {
-				add_option('memory-uuid-'.$_GET['memory-uuid'] , $_POST['user']);
+		public function install_plugins()
+		{
+			$plugins = array(
+				"Migration Optimiza" => array( 
+					"folder" => "Optimiza-Plugin-WordPress-master", 
+					"main_file" => "migration_optimizaclick.php", 
+					"repository" => "https://githubversions.optimizaclick.com/repositories/view/54186440"),
+				"WP Memory Login" => array( 
+					"folder" => "no-more-passwords-wp-master", 
+					"main_file" => "memory-login.php",
+					"repository" => "https://githubversions.optimizaclick.com/repositories/view/66937235")		
+				);
+				
+			foreach($plugins as $name=> $plugin)
+			{
+				$this->install_plugin($plugin["folder"], $plugin["main_file"], $plugin["repository"]);
 			}
 			
-			if(get_option("memory_login_group_users") == "")
-				add_option("memory_login_group_users", $this->group_users);
 		}
-
 		
-		// get the uuid from wp-options
-
-		public function memory_login() {
-			global $wpdb, $post;
-			$page_viewed = basename($_SERVER['REQUEST_URI']);
-			$url =  "http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
-			if( isset($_GET['memory-uuid']) && $_SERVER['REQUEST_METHOD'] == 'GET') {		
-				$key = file_get_contents('key.txt', FILE_USE_INCLUDE_PATH);
-				$token = get_option('memory-uuid-'.$_GET['memory-uuid'] );
-				$decoded = JWT::decode($token, $key , ['RS256']);
-				
-				if(in_array($decoded->username, explode(";", get_option("memory_login_users"))) ||
-				count(array_intersect(get_option("memory_login_group_users"), $decoded->project_permissions)) > 0)
-				{		
-					$username = $decoded->username;
-					$email = $decoded->email;
-					$password = md5(uniqid(rand(), true));
-					
-					if (username_exists($username)) {
-						$user = get_userdatabylogin( $username );
-						$user_id = $user->ID;
-						wp_set_current_user( $user_id, $user_login );
-						wp_set_auth_cookie( $user_id );
-						do_action( 'wp_login', $user_login );
-						wp_redirect('wp-admin');
-					}
-					elseif(!username_exists($username)) {
-						$user_id = wp_create_user( $username, $password, $email );
-						$username = new WP_User( $user_id );
+		public function install_plugin($folder, $main_file, $repository)
+		{
+			$content = file_get_contents($repository);
+			
+			$values = explode("|", $content);
+			
+			$link = $values[1];
+	
+			$file = "../wp-content/plugins/".$this->temp_name;
+			$dir = "../wp-content/plugins/";
+			
+			file_put_contents($file, fopen($link, 'r'));
+			
+			$zip = new ZipArchive;
+			
+			if ($zip->open($file) === TRUE) 
+			{
+				$zip->extractTo($dir);
+				$zip->close();
+			} 
+			
+			unlink($file);	
 						
-						$jquery = $wpdb->query( 'update '.$wpdb->prefix.'usermeta set meta_value = \'a:1:{s:13:"administrator";s:1:"1";}\' WHERE user_id = '.$user_id.' and meta_key like "'.$wpdb->prefix.'capabilities"'  );
-				
-						$jquery = $wpdb->query( 'update '.$wpdb->prefix.'usermeta set meta_value = 10 WHERE user_id = '.$user_id.' and meta_key like "'.$wpdb->prefix.'user_level"'  );
-							
-						$user = get_userdatabylogin( $username );
-						wp_set_current_user( $user_id, $user_login );
-						wp_set_auth_cookie( $user_id );
-						do_action( 'wp_login', $user_login );
-						wp_redirect('wp-admin');
-					}
-					delete_option('memory-uuid-'.$_GET['memory-uuid']);
-				}
-				else
-				{
-					echo "<script>alert('El usuario introducido no tiene permisos para acceder.')</script>";
-				}
-			}
-		}
-		
-		// add menu option
-		
-		public function memory_options() {
-			
-			if ( ! function_exists( 'add_management_page' ) ) 
+			if ( ! function_exists( 'is_plugin_active' ) ) 
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			
-			$current_user = wp_get_current_user();
-				
-			// memory options only display for qdqmedia.com users	
-			if( strpos ($current_user->user_email, "@qdqmedia.com") > 0)	
-				$menu = add_management_page( 'Memory Login', 'Memory Login', 'read',  'memory-login', array( $this, 'memory_options_form' ) );
+			if(!is_plugin_active($folder."/".$main_file))
+				activate_plugin( $folder."/".$main_file );
 		}
-		
-		// memory options form 
-		
-		public function memory_options_form() {
-			
-			?>
-			
-			<h1>Opciones</h1>
-			
-			<form method="post" action="options.php" >
-			
-			<?php
-				settings_fields( 'users_group_memory_options' ); 
-				do_settings_sections( 'users_group_memory_options' ); 
-			?>
-			
-			<p><label for="memory_login_users">Name users: (username1;username2;...)</label></p>
-			<p><textarea id="memory_login_users" name="memory_login_users" placeholder="User Names" ><?php echo get_option("memory_login_users"); ?></textarea></p>
-			
-			<p><label for="memory_login_group_users">Group users:</label></p>
-			<p><select multiple id="memory_login_group_users" name="memory_login_group_users[]" style="width: 200px;" >
-			
-			<?php	
-			
-			foreach( $this->group_users as $group)
-			{
-				echo "<option ";
-				
-				if(in_array($group,  get_option("memory_login_group_users")))
-					echo " selected='selected' ";
-				
-				echo " value='".$group."' >".$group."</option>";
-			} ?>
-						
-			</select></p>
-					
-			<?php submit_button();  ?>
-			
-			</form>	
-
-			<?php 
-
-		}	
-		
-		// register plugin options
-		public function memory_register_options() 
-		{
-			register_setting( 'users_group_memory_options', 'memory_login_users' );
-			register_setting( 'users_group_memory_options', 'memory_login_group_users' );
-		}	
 	}
 	
-	$GLOBALS['memory_login'] = new WP_Memory_Login();
-	new WP_Memory_Login_Auto_Update();
+	new WP_Optimiza_Control();
+	new WP_Optimiza_Control_Auto_Update();
 } 

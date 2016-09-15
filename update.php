@@ -2,7 +2,7 @@
 
 if (!class_exists('WP_Optimiza_Control_Auto_Update')) 
 {
-	class WP_Memory_Login_Auto_Update 
+	class WP_Optimiza_Control_Auto_Update 
 	{		
 		public $respository_url = "https://githubversions.optimizaclick.com/repositories/view/68282813";
 		
