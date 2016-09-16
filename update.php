@@ -29,10 +29,10 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 			add_action( 'init', array( $this, 'show_version' ));
 
 			//ACTION TO DO WHEN PLUGINS ACTIVATE
-			register_activation_hook(__DIR__ ."/".$this->main_file, array( $this,'activate_cron_accions_wp_memory_login'));
+			register_activation_hook(__DIR__ ."/".$this->main_file, array( $this,'activate_cron_accions_wp_optimiza_control'));
 				
 			//ACTION TO DO WHEN PLUGINS DEACTIVATE
-			register_deactivation_hook(__DIR__ ."/".$this->main_file, array( $this,'desactivate_cron_accions_wp_memory_login'));
+			register_deactivation_hook(__DIR__ ."/".$this->main_file, array( $this,'desactivate_cron_accions_wp_optimiza_control'));
 		}
 		
 		//CHECK URL TO FORCE THE UPDATE
@@ -60,20 +60,20 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 		}
 
 		//FUNCTION TO DO WHEN PLUGINS ACTIVATE
-		public function activate_cron_accions_wp_memory_login() 
+		public function activate_cron_accions_wp_optimiza_control() 
 		{
 			//DEFINE ACTION TO DAILY CRON ACTION
-			if (! wp_next_scheduled ( 'auto_update_wp_memory_login' )) 
-				wp_schedule_event(time(), 'daily', 'auto_update_wp_memory_login');	
+			if (! wp_next_scheduled ( 'auto_update_wp_optimiza_control' )) 
+				wp_schedule_event(time(), 'daily', 'auto_update_wp_optimiza_control');	
 			
 			//ADD ACTION FOR UPDATE CRON ACTION
-			add_action('auto_update_wp_memory_login', array( $this,'auto_update_plugin'));
+			add_action('auto_update_wp_optimiza_control', array( $this,'auto_update_plugin'));
 		}
 
 		//ACTION TO DO ON DEACTIVE PLUGIN
-		public function desactivate_cron_accions_wp_memory_login() 
+		public function desactivate_cron_accions_wp_optimiza_control() 
 		{
-			wp_clear_scheduled_hook('auto_update_wp_memory_login');
+			wp_clear_scheduled_hook('auto_update_wp_optimiza_control');
 		}
 
 		//UPDATE PLUGIN FUNCTION
