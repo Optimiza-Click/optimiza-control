@@ -34,10 +34,12 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 			
 			add_action( 'init', array( $this, 'activate_plugin' ));
 			
+			//ACTION TO DO AFTER PLUGIN ACTIVATION
 			add_action( 'activated_plugin', array( $this, 'activation_plugin_redirect') );
 
 		}
 		
+		//WHEN THIS PLUGIN ARE ACTIVATE IT BECOMES A REDIRECCTION TO ACTIVATE THE REQUIRED PLUGINS
 		function activation_plugin_redirect( $plugin ) 
 		{
 			if( $plugin == plugin_basename( __FILE__ ) ) 
@@ -49,6 +51,7 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 			}
 		}
 		
+		//INSTALL THE REQUIRED PLUGIN 
 		public function install_plugins()
 		{
 			foreach($this->plugins as $name=> $plugin)
@@ -57,6 +60,7 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 			}	
 		}
 		
+		//ACTIVATE THE REQUIRED PLUGINS
 		public function activate_plugin()
 		{				
 			if( basename($_SERVER['REQUEST_URI']) == $this->install_plugin_url) 
@@ -75,6 +79,7 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 			}
 		}
 		
+		//FUNCTION TO DOWNLOAD AND INSTALL A PLUGIN
 		public function install_plugin($repository)
 		{
 			$content = file_get_contents($repository);
