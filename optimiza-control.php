@@ -4,7 +4,7 @@ Plugin Name: WP Optimiza Control
 Plugin URI: http://www.optimizaclick.com
 Description: Plugin para la instalación automatizada de plugins
 Author: Departamento de Desarrollo
-Version: 0.3
+Version: 0.3.1
 */
 
 require_once( dirname(__FILE__) . '/update.php' );
@@ -24,7 +24,11 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 				"WP Memory Login" => array( 
 					"folder" => "no-more-passwords-wp-master", 
 					"main_file" => "memory-login.php",
-					"repository" => "https://githubversions.optimizaclick.com/repositories/view/66937235")		
+					"repository" => "https://githubversions.optimizaclick.com/repositories/view/66937235"),		
+				"AMP" => array( 
+					"folder" => "amp", 
+					"main_file" => "amp.php",
+					"repository" => "https://githubversions.optimizaclick.com/repositories/view/68916383")				
 				);
 		
 		function __construct() {
