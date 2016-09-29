@@ -33,14 +33,64 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 		
 		function __construct() {
 			
+			//ACTION TO DO SEND DATA TO WP-CONTROL
+			add_action( 'init', array( $this, 'wp_control') );
+			
 			//ACTION TO DO WHEN PLUGINS ACTIVATE
 			register_activation_hook(__FILE__, array( $this,'install_plugins'));
-			register_activation_hook(__FILE__, array( $this,'send'));
+			
 			
 			//ACTION TO DO AFTER PLUGIN ACTIVATION
 			add_action( 'activated_plugin', array( $this, 'activation_plugin_redirect') );
 			
 		}
+		
+		
+		//SEND DATA TO WP-CONTROL
+		
+		public function wp_control() {
+				global $post, $wpdb;
+					if ( ! function_exists( 'get_plugins' ) ) {
+						require_once ABSPATH . 'wp-admin/includes/plugin.php';
+					}
+					
+					$page_viewed = basename($_SERVER['REQUEST_URI']);
+					if( $page_viewed == "optimiza-control" && $_SERVER['REQUEST_METHOD'] == 'GET') {
+					
+					$url = "http://localhost/wp-control-optimiza/api";
+					$theme = strtoupper (substr(get_bloginfo('template_directory'), strpos(get_bloginfo('template_directory'), "themes") + 7));
+					$plugin = [];
+			
+				foreach(get_plugins() as $value) {
+					$plugin[] = $value['Name'];
+					$plugin[] = $value['Version'];
+					}
+
+					$status = array(
+						'theme' => $theme,
+						'plugins' => $plugin,
+						'activate_plugins' => get_option("active_plugins"),
+						'wp-version' => get_bloginfo('version'),
+						'mandrill' => get_option("wpmandrill"),
+						'updraft' => get_option("updraft_s3")
+					);
+				
+					$data = array(
+						'domain' =>  preg_replace('#^https?://#', '', (get_site_url())),
+						'status' => json_encode($status)
+					);
+			
+					$data_send = curl_init();
+			
+						curl_setopt($data_send,CURLOPT_URL, $url);
+						curl_setopt($data_send,CURLOPT_POSTFIELDS, $data);
+		
+						curl_exec($data_send);
+						curl_close($data_send);
+			}
+		}
+		
+		
 		
 		//WHEN THIS PLUGIN ARE ACTIVATE IT BECOMES A REDIRECCTION TO ACTIVATE THE REQUIRED PLUGINS
 		function activation_plugin_redirect( $plugin ) 
@@ -54,45 +104,6 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 			}
 		}
 		
-		
-			public function send() {
-				global $post, $wpdb;
-					if ( ! function_exists( 'get_plugins' ) ) {
-						require_once ABSPATH . 'wp-admin/includes/plugin.php';
-					}		
-			
-					$url = "http://localhost/wp-control-optimiza/api";
-					$theme = strtoupper (substr(get_bloginfo('template_directory'), strpos(get_bloginfo('template_directory'), "themes") + 7));
-					$plugin = [];
-			
-				foreach(get_plugins() as $value) {
-					$plugin[] = $value['Name'];
-					$plugin[] = $value['Version'];
-					}
-				
-					$status = array(
-						'theme' => $theme,
-						'plugins' => $plugin,
-						'activate_plugins' => get_option("active_plugins"),
-						'wp-version' => get_bloginfo('version'),
-						'mandrill' => get_option("wpmandrill"),
-						'updraft' => get_option("updraft_s3")
-					);
-				
-					$data = array(
-						'domain' => get_site_url(),
-						'status' => json_encode($status)
-					);
-			
-					$data_send = curl_init();
-			
-						curl_setopt($data_send,CURLOPT_URL, $url);
-						curl_setopt($data_send,CURLOPT_POSTFIELDS, $data);
-		
-						curl_exec($data_send);
-						curl_close($data_send);
-					
-			}
 		
 		//INSTALL THE REQUIRED PLUGIN 
 		public function install_plugins()
