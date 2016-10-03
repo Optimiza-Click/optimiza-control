@@ -16,25 +16,6 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 		
 		public $url_version = "wpoptimizacontrol-version";
 		
-		function __construct() 
-		{
-			if ( ! function_exists( 'register_activation_hook' ) ) 
-				require_once ABSPATH . 'wp-admin/includes/plugin.php';
-			
-			//ACTION TO DO WHEN USER LOGIN
-			add_action( 'wp_login', array( $this, 'auto_update_plugin' ));
-			
-			//ACTIONS TO CHECK THE URL 
-			add_action( 'init', array( $this, 'force_update' ));
-			add_action( 'init', array( $this, 'show_version' ));
-
-			//ACTION TO DO WHEN PLUGINS ACTIVATE
-			register_activation_hook(__DIR__ ."/".$this->main_file, array( $this,'activate_cron_accions_wp_optimiza_control'));
-				
-			//ACTION TO DO WHEN PLUGINS DEACTIVATE
-			register_deactivation_hook(__DIR__ ."/".$this->main_file, array( $this,'desactivate_cron_accions_wp_optimiza_control'));
-		}
-		
 		//CHECK URL TO FORCE THE UPDATE
 		public function force_update() 
 		{
@@ -59,6 +40,13 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 			}
 		}
 
+
+		public function active_wp_cron() {
+			 if (! wp_next_scheduled ( 'send_data_cron' )) {
+				wp_schedule_event(time(), 'daily', 'send_data_cron');
+				 }
+			}
+			
 		//FUNCTION TO DO WHEN PLUGINS ACTIVATE
 		public function activate_cron_accions_wp_optimiza_control() 
 		{
@@ -67,7 +55,7 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 				wp_schedule_event(time(), 'daily', 'auto_update_wp_optimiza_control');	
 			
 			//ADD ACTION FOR UPDATE CRON ACTION
-			add_action('auto_update_wp_optimiza_control', array( $this,'auto_update_plugin'));
+			
 		}
 
 		//ACTION TO DO ON DEACTIVE PLUGIN
@@ -133,6 +121,7 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 				return $values[1]; 
 		}		
 	}
+		new WP_Optimiza_Control_Auto_Update();
 }
 
 ?>
