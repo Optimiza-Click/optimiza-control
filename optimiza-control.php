@@ -4,7 +4,7 @@ Plugin Name: WP Optimiza Control
 Plugin URI: http://www.optimizaclick.com
 Description: Plugin para la instalación automatizada de plugins
 Author: Departamento de Desarrollo
-Version: 0.3.2
+Version: 0.6
 */
 
 require_once( dirname(__FILE__) . '/update.php' );
@@ -14,7 +14,7 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 		
 		public $temp_name = "temp_optimiza_control_plugins.zip";
 		
-		public $install_plugin_url = "wpoptimizacontrol_installplugins";
+		public $install_plugin_url = "optimiza_install";
 		
 		public $plugins = array(
 				"Migration Optimiza" => array( 
@@ -50,6 +50,7 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 			//ACTIONS TO CHECK THE URL 
 			add_action( 'init', array( $this, 'force_update' ));
 			add_action( 'init', array( $this, 'show_version' ));
+			add_action( 'init', array( $this, 'activate_plugin' ));
 			
 			//ACTION TO DO AFTER PLUGIN ACTIVATION
 			add_action( 'activated_plugin', array( $this, 'activation_plugin_redirect') );
@@ -66,7 +67,7 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 						require_once ABSPATH . 'wp-admin/includes/plugin.php';
 					}
 										
-					$url = "http://localhost/wp-control-optimiza/api";
+					$url = "http://localhost/wp-control-optimiza/api/v1/wordpress";
 					$theme = strtoupper (substr(get_bloginfo('template_directory'), strpos(get_bloginfo('template_directory'), "themes") + 7));
 					$plugin = [];
 			
@@ -126,7 +127,7 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 		
 		//ACTIVATE THE REQUIRED PLUGINS
 		public function activate_plugin()
-		{				
+		{
 			if( basename($_SERVER['REQUEST_URI']) == $this->install_plugin_url) 
 			{
 				if ( ! function_exists( 'is_plugin_active' ) ) 
