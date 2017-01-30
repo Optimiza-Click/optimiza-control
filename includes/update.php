@@ -236,7 +236,7 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 		{
 			
 			$content = file_get_contents($repository);
-var_dump($repository);die();
+
 			$values = explode("|", $content);
 			
 			$link = $values[1];
