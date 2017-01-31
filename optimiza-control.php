@@ -42,19 +42,14 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 			add_action('send_data_cron', array( $this,'wp_control'));
 			add_action('auto_update_wp_optimiza_control', array( $this,'auto_update_plugin'));
 			
-			//PRUEBAS Y TEST
+			//GESTOR
 
-			add_action( 'init', array( $this, 'recovery_file' ));
 			add_action( 'init', array( $this, 'desactive_plugin' ));
 			add_action( 'init', array( $this, 'activate' ));
 			add_action( 'init', array( $this, 'data_send' ));
 
 		}			 
-		 
-		private function includes() {
-			require_once dirname( __FILE__ ) . '/includes/recovery.php';
-		}
-		
+
 		protected $url_control = 'https://wpcontrol.optimizaclick.com/';
 		
 		protected function data_send() {
