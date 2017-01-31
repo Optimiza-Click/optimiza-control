@@ -120,7 +120,7 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 							$url = $this->url_control . 'api/v1/wordpress/';
 							
 							$this->data_send();
-
+							$wp_control_data = json_decode($wp_control_data)
 							$data_send = curl_init();
 					
 								curl_setopt($data_send,CURLOPT_URL, $url);
