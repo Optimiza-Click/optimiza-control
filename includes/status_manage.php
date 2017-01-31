@@ -1,10 +1,8 @@
 <?php
 
-require_once dirname( __FILE__ ) . '/recovery.php';
-
 	if (!class_exists('WP_Optimiza_Manage')) 
 	{
-		class WP_Optimiza_Manage extends WP_Recovery
+		class WP_Optimiza_Manage
 			{
 		
 			public function retrieve_plugins_data() {
