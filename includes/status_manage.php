@@ -13,7 +13,7 @@
 							$this->data_send();
 						
 							print_r($wp_control_data);
-					
+					die();
 					}
 
 		}
