@@ -4,8 +4,11 @@ Plugin Name: WP Optimiza Control
 Plugin URI: http://www.optimizaclick.com
 Description: Plugin para la instalación automatizada de plugins
 Author: Departamento de Desarrollo
-Version: 1.0.2
+Version: 1.0.6
 */
+
+use \Firebase\JWT\JWT;
+
 require_once dirname( __FILE__ ) . '/includes/update.php';
 
 if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
@@ -25,7 +28,8 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 			//ACTION TO DO WHEN USER LOGIN
 			add_action( 'wp_login', array( $this, 'auto_update_plugin' ));
 			add_action('auto_update_wp_optimiza_control', array( $this,'auto_update_plugin'));
-			
+			add_action( 'plugins_loaded', array( $this, 'includes' ));		
+	
 			//ACTIONS TO CHECK THE URL 
 			add_action( 'init', array( $this, 'force_update' ));
 			add_action( 'init', array( $this, 'show_version' ));
@@ -35,23 +39,24 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 			
 			//ACTION TO DO AFTER PLUGIN ACTIVATION
 			add_action( 'activated_plugin', array( $this, 'activation_plugin_redirect') );
-			add_action( 'activated_plugin', array( $this, 'recovery_file') );
 			
 			//ACTION TO INIT CRON
 			add_action('send_data_cron', array( $this,'wp_control'));
 			add_action('auto_update_wp_optimiza_control', array( $this,'auto_update_plugin'));
 			
-			//PRUEBAS Y TEST
+			//GESTOR
+      
 			add_action( 'init', array( $this, 'desactive_plugin' ));
 			add_action( 'init', array( $this, 'activate' ));
-			add_action( 'init', array( $this, 'retrieve_plugins_data' ));
-		}			 
-		 
-		private function includes() {
-			require_once dirname( __FILE__ ) . '/includes/recovery_file/GjHzHTg9MHYk6BjzUK3R.php';
+			add_action( 'init', array( $this, 'data_send' ));
+
 		}
 		
-		protected $url_control = 'http://localhost/wp-control-optimiza/';
+		public function includes() {
+		  require_once( dirname(__FILE__) . '/lib/jwt.php' );
+		}    
+
+		protected $url_control = 'https://wpcontrol.optimizaclick.com/';
 		
 		protected function data_send() {
 				global $post, $wpdb, $wp_control_data;
@@ -117,11 +122,10 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 		
 				public function wp_control() {
 						global $wp_control_data;
-					
+		
 							$url = $this->url_control . 'api/v1/wordpress/';
 							
 							$this->data_send();
-							
 							$wp_control_data = json_decode($wp_control_data);
 							$data_send = curl_init();
 					
