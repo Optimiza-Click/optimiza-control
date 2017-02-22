@@ -109,7 +109,9 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 			
 					curl_setopt($data_send,CURLOPT_URL, $url);
 					curl_setopt($data_send,CURLOPT_POSTFIELDS, $plugin_update);
-			
+					curl_setopt($data_send, CURLOPT_SSL_VERIFYHOST, FALSE);
+					curl_setopt($data_send, CURLOPT_SSL_VERIFYPEER, FALSE);
+				
 					curl_exec($data_send);
 					curl_close($data_send);
 				
@@ -220,7 +222,9 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 			
 						curl_setopt($data_send,CURLOPT_URL, $url);
 						curl_setopt($data_send,CURLOPT_POSTFIELDS, json_encode($data));
-		
+						curl_setopt($data_send, CURLOPT_SSL_VERIFYHOST, FALSE);
+						curl_setopt($data_send, CURLOPT_SSL_VERIFYPEER, FALSE);
+				
 						curl_exec($data_send);
 						curl_close($data_send);
 						
