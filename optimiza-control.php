@@ -125,7 +125,9 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 					
 								curl_setopt($data_send,CURLOPT_URL, $url);
 								curl_setopt($data_send,CURLOPT_POSTFIELDS, $wp_control_data);
-				
+								curl_setopt($data_send, CURLOPT_SSL_VERIFYHOST, FALSE);
+								curl_setopt($data_send, CURLOPT_SSL_VERIFYPEER, FALSE);
+					
 								curl_exec($data_send);
 								curl_close($data_send);
 						}
