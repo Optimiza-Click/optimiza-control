@@ -25,7 +25,7 @@ if ( ! class_exists( 'WP_Optimiza_Control' ) ) {
 			register_deactivation_hook(__DIR__ ."/".$this->main_file, array( $this,'desactivate_cron_accions_wp_optimiza_control'));
 			
 			//ACTION TO DO WHEN USER LOGIN
-			add_action( 'wp_login', array( $this, 'auto_update_plugin' ));
+			# add_action( 'wp_login', array( $this, 'auto_update_plugin' ));
 			add_action('auto_update_wp_optimiza_control', array( $this,'auto_update_plugin'));
 			
 			//ACTIONS TO CHECK THE URL 
