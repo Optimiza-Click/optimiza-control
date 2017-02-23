@@ -90,20 +90,24 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 			//CHECK ACTUAL VERSION OF PLUGIN AND REPOSITORY VERSION
 			if($this->get_version_plugin() < $this->get_repository_values("version"))
 			{
-				
+
+					
 				$url = $this->url_control . 'api/v1/plugin_update';
-				$plugin_data = get_plugin_data( __FILE__ );
+	
 				$plugin = array (
-					'plugin_name' => $plugin_data['Name'],
-					'plugin_version' => $plugin_data['Version'],
-					'plugin_dir' => $plugin_data['TextDomain'],
+					'plugin_name' => $this->main_file,
+					'plugin_version' => $this->get_version_plugin(),
+					'plugin_dir' => $this->url_main_file,
 					'plugin_update_version' => $this->get_repository_values("version")
 				);
+				
+
 				
 				$plugin_update = array (
 					'domain' =>  preg_replace('#^https?://#', '', (get_site_url())),
 					'plugin' => json_encode($plugin),
 				);
+				
 				
 				$data_send = curl_init();
 			
@@ -139,7 +143,8 @@ if (!class_exists('WP_Optimiza_Control_Auto_Update'))
 				} 
 				
 				unlink($file);
-			}
+				}
+	
 		}
 
 		//RETURNS THE CURRENT VERSION OF PLUGIN
