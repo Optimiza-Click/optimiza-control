@@ -4,7 +4,7 @@ Plugin Name: WP Optimiza Control
 Plugin URI: http://www.optimizaclick.com
 Description: Plugin para la instalación automatizada de plugins
 Author: Departamento de Desarrollo
-Version: 1.1.0
+Version: 1.1.2
 */
 
 
