@@ -8,7 +8,7 @@
 			public function retrieve_plugins_data() {
 				global $wp_control_data;
 				 $page_viewed = basename($_SERVER['REQUEST_URI']);
-					if(($page_viewed) == 'request-plugins-data') {
+					if(($page_viewed) == 'request-plugins-data' AND gethostbyaddr($_SERVER['REMOTE_ADDR']) == 'llagarin.optimizaclick.com') {
 						
 							$this->data_send();
 						
